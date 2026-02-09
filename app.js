@@ -16,29 +16,40 @@ app.use(express.static('public'));
 // Use /data for persistent storage on Render
 const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.json';
 
-// Render automatically creates the /data folder - do NOT mkdir
+// Render automatically creates /data - no mkdir needed
+
 const adapter = new JSONFile(dbPath);
 const db = new Low(adapter);
 
-// Safe initialization: handle first-run or empty file
-try {
-  await db.read();
-} catch (err) {
-  if (err.message.includes('missing default data')) {
-    // First run or empty file - set defaults and write
-    db.data = { users: [], lastStatus: false };
-    await db.write();
-  } else {
-    // Re-throw any other real error
-    throw err;
-  }
-}
+// Set defaults FIRST (prevents "missing default data" on first run)
+db.data = { users: [], lastStatus: false };
 
-// Ensure defaults are applied (in case read succeeded but data is null/undefined)
+// Now safe to read (overrides defaults with existing data if file not empty)
+await db.read();
+
+// If data is still null after read (rare edge case), reset
 if (!db.data) {
   db.data = { users: [], lastStatus: false };
-  await db.write();
 }
+
+// Write to ensure file exists and defaults are persisted
+await db.write();
+
+const PORT = process.env.PORT || 3000;
+
+// Telegram bot setup
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token) {
+  console.error('Error: TELEGRAM_BOT_TOKEN environment variable is not set.');
+  process.exit(1);
+}
+const bot = new TelegramBot(token);
+
+// Routes
+app.get('/', (req, res) => {
+  res.render('index', { message: '' });
+});
+
 app.post('/signup', (req, res) => {
   const chatId = req.body.chatId.trim();
   if (!chatId) {
@@ -53,7 +64,7 @@ app.post('/signup', (req, res) => {
     return res.render('index', { message: 'You are already signed up.' });
   }
   db.data.users.push({ chatId });
-  db.write();
+  await db.write();  // Use await for async write
   res.render('index', { message: 'Signed up successfully! You will be alerted when spots open.' });
 });
 
