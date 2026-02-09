@@ -16,10 +16,6 @@ app.use(express.static('public'));
 // Use /data for persistent storage on Render
 const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.json';
 
-if (!fs.existsSync(path.dirname(dbPath))) {
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-}
-
 const adapter = new JSONFile(dbPath);
 const db = new Low(adapter);
 await db.read(); // Read existing data first
