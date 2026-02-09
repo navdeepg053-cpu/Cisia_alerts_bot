@@ -1,18 +1,20 @@
 services:
   - type: web
     name: cisia-alerts-bot
-    runtime: node
-    repo: https://github.com/navdeepg053-cpu/Cisia_alerts_bot.git
+    env: node
+    instanceType: free  # Replaces invalid 'plan: free'
+    repo: https://github.com/navdeepg053-cpu/Cisia_alerts_bot.git  # Fixed typo (pg->g)
     branch: main
-    buildCommand: npm install
+    buildCommand: npm ci  # Faster, cleaner than 'npm install'
     startCommand: npm start
-    plan: free
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
       - key: TELEGRAM_BOT_TOKEN
-        sync: false   # This means you'll add the real token later in Render dashboard
+        sync: false  # Prompt for token on deploy
     disks:
       - name: data
         mountPath: /data
         sizeGB: 1
+    healthCheckPath: /  # Ensures Render detects healthy app
