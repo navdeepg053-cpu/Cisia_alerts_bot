@@ -2,19 +2,16 @@ services:
   - type: web
     name: cisia-alerts-bot
     env: node
-    instanceType: free  # Replaces invalid 'plan: free'
-    repo: https://github.com/navdeepg053-cpu/Cisia_alerts_bot.git  # Fixed typo (pg->g)
+    instanceType: free  # Free: 750 hrs/mo, spins down idle
+    repo: https://github.com/navdeepg053-cpu/Cisia_alerts_bot.git
     branch: main
-    buildCommand: npm ci  # Faster, cleaner than 'npm install'
+    buildCommand: npm ci
     startCommand: npm start
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
       - key: TELEGRAM_BOT_TOKEN
-        sync: false  # Prompt for token on deploy
-    disks:
-      - name: data
-        mountPath: /data
-        sizeGB: 1
-    healthCheckPath: /  # Ensures Render detects healthy app
+        sync: false
+    healthCheckPath: /
+    handlesScaleToZero: true  # Optimizes spin-down
