@@ -1,12 +1,12 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const lowdb = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const TelegramBot = require('node-telegram-bot-api');
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import bodyParser from 'body-parser';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node';
+import axios from 'axios';
+import cheerio from 'cheerio';
+import TelegramBot from 'node-telegram-bot-api';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -15,12 +15,16 @@ app.use(express.static('public'));
 
 // Use /data for persistent storage on Render
 const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.json';
+
 if (!fs.existsSync(path.dirname(dbPath))) {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 }
-const adapter = new FileSync(dbPath);
-const db = lowdb(adapter);
-db.defaults({ users: [], lastStatus: false }).write();
+
+const adapter = new JSONFile(dbPath);
+const db = new Low(adapter);
+await db.read(); // Read existing data first
+db.data ||= { users: [], lastStatus: false }; // Default if file is empty/new
+await db.write(); // Ensure file exists
 
 const PORT = process.env.PORT || 3000;
 
@@ -46,11 +50,12 @@ app.post('/signup', (req, res) => {
   if (!/^\d+$/.test(chatId)) {
     return res.render('index', { message: 'Invalid Chat ID: Must be a number (e.g., 123456789).' });
   }
-  const existing = db.get('users').find({ chatId }).value();
+  const existing = db.data.users.find(user => user.chatId === chatId);
   if (existing) {
     return res.render('index', { message: 'You are already signed up.' });
   }
-  db.get('users').push({ chatId }).write();
+  db.data.users.push({ chatId });
+  db.write();
   res.render('index', { message: 'Signed up successfully! You will be alerted when spots open.' });
 });
 
@@ -89,18 +94,21 @@ async function checkSpots() {
 async function checkAndAlert() {
   try {
     const currentStatus = await checkSpots();
-    const lastStatus = db.get('lastStatus').value();
+    const lastStatus = db.data.lastStatus;
 
     if (currentStatus && !lastStatus) {
       console.log('Spots opened! Sending alerts...');
-      const users = db.get('users').value();
       const message = 'Alert: Spots for CENT@HOME/CENT@CASA have opened up! Check now: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
-      users.forEach((user) => {
-        bot.sendMessage(user.chatId, message).catch((err) => console.error(`Failed to send to ${user.chatId}:`, err.message));
+      db.data.users.forEach((user) => {
+        bot.sendMessage(user.chatId, message).catch((err) => {
+          console.error(`Failed to send to ${user.chatId}:`, err.message);
+        });
       });
-      db.set('lastStatus', true).write();
+      db.data.lastStatus = true;
+      await db.write();
     } else if (!currentStatus && lastStatus) {
-      db.set('lastStatus', false).write();
+      db.data.lastStatus = false;
+      await db.write();
     }
   } catch (error) {
     console.error('Error in checkAndAlert:', error.message);
