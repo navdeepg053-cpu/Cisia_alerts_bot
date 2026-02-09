@@ -1,4 +1,5 @@
-"name": "cisia_alerts_bot",
+{
+  "name": "cisia_alerts_bot",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -12,4 +13,5 @@
     "express": "^4.18.2",
     "lowdb": "^7.0.1",
     "node-telegram-bot-api": "^0.64.0"
-  
+  }
+}
