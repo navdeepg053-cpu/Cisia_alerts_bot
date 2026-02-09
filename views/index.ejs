@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CISIA Spot Alert</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sign Up for CISIA Spot Alerts</h1>
+        <p>This site checks the CISIA calendar for open CENT@HOME / CENT@CASA spots every 30 seconds and sends you a Telegram message when they become available.</p>
+        
+        <p><strong>How to get your Telegram Chat ID:</strong><br>
+        1. Open Telegram app.<br>
+        2. Search for @userinfobot (or @RawDataBot).<br>
+        3. Start chat — it replies instantly with your ID (a long number like 123456789).<br>
+        4. Copy that number and paste here.</p>
+        
+        <form action="/signup" method="POST">
+            <label for="chatId">Your Telegram Chat ID:</label>
+            <input type="text" id="chatId" name="chatId" required placeholder="e.g., 123456789" pattern="\d+" title="Only numbers allowed">
+            <button type="submit">Sign Up & Get Alerts</button>
+        </form>
+        
+        <% if (message) { %>
+            <p class="message"><%= message %></p>
+        <% } %>
+    </div>
+</body>
+</html>
