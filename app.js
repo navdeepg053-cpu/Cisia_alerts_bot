@@ -44,6 +44,11 @@ app.get('/', (req, res) => {
   res.render('index', { message: '' });
 });
 
+app.get('/users', (req, res) => {
+  if (!db?.data) return res.status(500).json({ error: 'DB not ready' });
+  res.json({ count: db.data.users.length, users: db.data.users });
+});
+
 app.post('/signup', async (req, res) => {
   const chatId = req.body.chatId?.trim();
   if (!chatId || !/^d+$/.test(chatId)) {
@@ -63,7 +68,7 @@ app.post('/signup', async (req, res) => {
   res.render('index', { message: 'Signed up! Alerts when spots open.' });
 });
 
-// Robust scraper with headers and precise selectors
+// Robust scraper with headers and precise selectors + logging
 async function checkSpots() {
   try {
     const url = 'https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
@@ -76,6 +81,7 @@ async function checkSpots() {
     
     const $ = cheerio.load(data);
     const rows = $('table tr').slice(1); // Skip headers
+    console.log(`🕵️ CISIA scrape: Found ${rows.length} table rows`);
     
     for (const row of rows) {
       const cells = $(row).find('td');
@@ -85,10 +91,12 @@ async function checkSpots() {
         
         if ((testType.includes('cent@home') || testType.includes('cent@casa')) &&
             (seatsText.includes('available') || seatsText.includes('disponibili') || /d+s*(seats?|posti)/.test(seatsText))) {
+          console.log(`✅ SPOT FOUND: ${testType} - ${seatsText}`);
           return true;
         }
       }
     }
+    console.log('❌ No CENT@HOME/CASA spots available');
     return false;
   } catch (error) {
     console.error('Scraper error:', error.message);
@@ -126,7 +134,7 @@ async function checkAndAlert() {
     const lastStatus = db.data.lastStatus;
     
     if (currentStatus && !lastStatus) {
-      console.log('🔔 Spots detected! Alerting...');
+      console.log('🔔 SPOTS DETECTED! Alerting all users...');
       const message = '🚨 CISIA Alert: CENT@HOME/CENT@CASA spots available!
 📅 Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
       
@@ -154,4 +162,5 @@ setTimeout(checkAndAlert, 5000);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server on port ${PORT} | Scraping CISIA every 30s`);
+  console.log(`👥 Check /users endpoint for signed up count`);
 });
