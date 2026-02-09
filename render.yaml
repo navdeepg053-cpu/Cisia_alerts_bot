@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: cisia-alerts-bot
+    runtime: node
+    repo: https://github.com/navdeepg053-cpu/Cisia_alerts_bot.git
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false   # This means you'll add the real token later in Render dashboard
+    disks:
+      - name: data
+        mountPath: /data
+        sizeGB: 1
