@@ -5,131 +5,153 @@ import { JSONFile } from 'lowdb/node';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import TelegramBot from 'node-telegram-bot-api';
-import path from 'path';
-import fs from 'fs';
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-// Use /data for persistent storage on Render
+// Persistent storage for Render
 const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.json';
 
-// Render automatically creates /data - no mkdir needed
+// Global db reference
+let db;
+let bot;
 
-const adapter = new JSONFile(dbPath);
-const db = new Low(adapter);
-
-// Set defaults FIRST (prevents "missing default data" on first run)
-db.data = { users: [], lastStatus: false };
-
-// Now safe to read (overrides defaults with existing data if file not empty)
-await db.read();
-
-// If data is still null after read (rare edge case), reset
-if (!db.data) {
-  db.data = { users: [], lastStatus: false };
-}
-
-// Write to ensure file exists and defaults are persisted
-await db.write();
+// IIFE for async DB/bot init (Render/Node compatible)
+(async () => {
+  // DB setup
+  const adapter = new JSONFile(dbPath);
+  db = new Low(adapter);
+  db.data ??= { users: [], lastStatus: false };
+  await db.read();
+  await db.write();
+  
+  // Bot setup
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) {
+    console.error('Error: TELEGRAM_BOT_TOKEN env var missing.');
+    process.exit(1);
+  }
+  bot = new TelegramBot(token);
+  console.log('Bot and DB initialized.');
+})();
 
 const PORT = process.env.PORT || 3000;
-
-// Telegram bot setup
-const token = process.env.TELEGRAM_BOT_TOKEN;
-if (!token) {
-  console.error('Error: TELEGRAM_BOT_TOKEN environment variable is not set.');
-  process.exit(1);
-}
-const bot = new TelegramBot(token);
 
 // Routes
 app.get('/', (req, res) => {
   res.render('index', { message: '' });
 });
 
-app.post('/signup', (req, res) => {
-  const chatId = req.body.chatId.trim();
-  if (!chatId) {
-    return res.render('index', { message: 'Chat ID is required.' });
+app.post('/signup', async (req, res) => {
+  const chatId = req.body.chatId?.trim();
+  if (!chatId || !/^d+$/.test(chatId)) {
+    return res.render('index', { message: 'Invalid Chat ID: Must be a number.' });
   }
-  // Validate chatId is numeric (Telegram chat IDs are integers)
-  if (!/^\d+$/.test(chatId)) {
-    return res.render('index', { message: 'Invalid Chat ID: Must be a number (e.g., 123456789).' });
+  
+  if (!db?.data) {
+    return res.render('index', { message: 'Service initializing, try again shortly.' });
   }
-  const existing = db.data.users.find(user => user.chatId === chatId);
-  if (existing) {
-    return res.render('index', { message: 'You are already signed up.' });
+  
+  if (db.data.users.find(u => u.chatId === chatId)) {
+    return res.render('index', { message: 'Already signed up.' });
   }
+  
   db.data.users.push({ chatId });
-  await db.write();  // Use await for async write
-  res.render('index', { message: 'Signed up successfully! You will be alerted when spots open.' });
+  await db.write();
+  res.render('index', { message: 'Signed up! Alerts when spots open.' });
 });
 
-// Scraper function
+// Robust scraper with headers and precise selectors
 async function checkSpots() {
   try {
     const url = 'https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
-    const { data } = await axios.get(url, { timeout: 10000 });
-    const $ = cheerio.load(data);
-    const bodyText = $('body').text().toLowerCase();
-
-    // Quick check for no dates
-    if (bodyText.includes('no dates available') || bodyText.includes('nessuna data disponibile')) {
-      return false;
-    }
-
-    // Scan rows for specific format and available status
-    let hasOpen = false;
-    $('tr').each((i, row) => {
-      const rowText = $(row).text().toLowerCase().trim();
-      if (rowText.length < 20) return; // Skip short/header rows
-      if ((rowText.includes('cent@home') || rowText.includes('cent@casa')) &&
-          (rowText.includes('available seats') || rowText.includes('posti disponibili'))) {
-        hasOpen = true;
-        return false; // Exit loop early
+    const { data } = await axios.get(url, {
+      timeout: 15000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
-    return hasOpen;
+    
+    const $ = cheerio.load(data);
+    const rows = $('table tr').slice(1); // Skip headers
+    
+    for (const row of rows) {
+      const cells = $(row).find('td');
+      if (cells.length >= 3) {
+        const testType = cells.eq(0).text().toLowerCase().trim();
+        const seatsText = cells.eq(-1).text().toLowerCase().trim();
+        
+        if ((testType.includes('cent@home') || testType.includes('cent@casa')) &&
+            (seatsText.includes('available') || seatsText.includes('disponibili') || /d+s*(seats?|posti)/.test(seatsText))) {
+          return true;
+        }
+      }
+    }
+    return false;
   } catch (error) {
-    console.error('Error in scraper:', error.message);
+    console.error('Scraper error:', error.message);
     return false;
   }
 }
 
-// Alert logic (only alert on status change from false to true)
+// Retry Telegram sender
+async function sendWithRetry(chatId, message, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await bot.sendMessage(chatId, message);
+      return true;
+    } catch (err) {
+      console.error(`Retry ${i+1}/${retries} for ${chatId}:`, err.message);
+      if (i === retries - 1) {
+        // Clean bad user
+        if (db?.data) {
+          db.data.users = db.data.users.filter(u => u.chatId !== chatId);
+          await db.write();
+        }
+      }
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  return false;
+}
+
+// Main checker
 async function checkAndAlert() {
+  if (!db || !bot) return; // Wait for init
+  
   try {
     const currentStatus = await checkSpots();
     const lastStatus = db.data.lastStatus;
-
+    
     if (currentStatus && !lastStatus) {
-      console.log('Spots opened! Sending alerts...');
-      const message = 'Alert: Spots for CENT@HOME/CENT@CASA have opened up! Check now: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
-      db.data.users.forEach((user) => {
-        bot.sendMessage(user.chatId, message).catch((err) => {
-          console.error(`Failed to send to ${user.chatId}:`, err.message);
-        });
-      });
+      console.log('🔔 Spots detected! Alerting...');
+      const message = '🚨 CISIA Alert: CENT@HOME/CENT@CASA spots available!
+📅 Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
+      
+      for (const user of db.data.users) {
+        await sendWithRetry(user.chatId, message);
+      }
+      
       db.data.lastStatus = true;
       await db.write();
     } else if (!currentStatus && lastStatus) {
+      console.log('No spots, resetting status.');
       db.data.lastStatus = false;
       await db.write();
     }
   } catch (error) {
-    console.error('Error in checkAndAlert:', error.message);
+    console.error('Alert error:', error.message);
   }
 }
 
-// Run checker every 30 seconds
+// Poll every 30s
 setInterval(checkAndAlert, 30000);
 
-// Initial check on startup
-checkAndAlert();
+// Startup check after delay
+setTimeout(checkAndAlert, 5000);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server on port ${PORT} | Scraping CISIA every 30s`);
 });
