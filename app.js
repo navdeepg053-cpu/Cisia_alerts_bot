@@ -20,21 +20,18 @@ let bot;
 
 // IIFE for async DB/bot init (Render/Node compatible)
 (async () => {
-  // DB setup
   const adapter = new JSONFile(dbPath);
-  db = new Low(adapter);
+  db = new Low(adapter, { users: [], lastStatus: false });
   db.data ??= { users: [], lastStatus: false };
   await db.read();
   await db.write();
-  
-  // Bot setup
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+
+  const token = "8257176038:AAE5jdCQvA-CcgMacMOoJlDyVgUoLNOCf8A";
   if (!token) {
-    console.error('Error: TELEGRAM_BOT_TOKEN env var missing.');
+    console.error('Error: TELEGRAM_BOT_TOKEN env var not set');
     process.exit(1);
   }
-  bot = new TelegramBot(token);
-  console.log('Bot and DB initialized.');
+  bot = new TelegramBot(token, { polling: true });
 })();
 
 const PORT = process.env.PORT || 3000;
@@ -135,8 +132,9 @@ async function checkAndAlert() {
     
     if (currentStatus && !lastStatus) {
       console.log('🔔 SPOTS DETECTED! Alerting all users...');
-      const message = '🚨 CISIA Alert: CENT@HOME/CENT@CASA spots available!
-📅 Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
+      const message = `CISIA Alert: CENT@HOME/CENT
+@CASA spots available!`;
+// Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
       
       for (const user of db.data.users) {
         await sendWithRetry(user.chatId, message);
