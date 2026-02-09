@@ -73,3 +73,18 @@ button:hover {
     font-weight: bold;
     font-size: 16px;
 }
+/* Add to end of file */
+input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    body { background-color: #1a1a1a; color: #ddd; }
+    .container { background: #2d2d2d; }
+}
+
+@media (max-width: 480px) {
+    .container { padding: 20px; margin: 10px; }
+}
