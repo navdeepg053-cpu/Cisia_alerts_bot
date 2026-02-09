@@ -3,29 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CISIA Spot Alert</title>
+    <title>CISIA Spot Alerts - CENT@HOME/CASA</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Sign Up for CISIA Spot Alerts</h1>
-        <p>This site checks the CISIA calendar for open CENT@HOME / CENT@CASA spots every 30 seconds and sends you a Telegram message when they become available.</p>
+        <h1>🚨 CISIA Spot Alerts</h1>
+        <p><strong>Free Telegram alerts</strong> when CENT@HOME or CENT@CASA spots open on <a href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese" target="_blank">CISIA calendar</a>. Checks every 30 seconds.</p>
         
-        <p><strong>How to get your Telegram Chat ID:</strong><br>
-        1. Open Telegram app.<br>
-        2. Search for @userinfobot (or @RawDataBot).<br>
-        3. Start chat — it replies instantly with your ID (a long number like 123456789).<br>
-        4. Copy that number and paste here.</p>
+        <p><strong>Get your Chat ID (30 seconds):</strong><br>
+        1️⃣ Open Telegram → Search <code>@userinfobot</code> or <code>@RawDataBot</code><br>
+        2️⃣ Send <code>/start</code> → Copy your ID (long number like <code>123456789</code>)<br>
+        3️⃣ Paste below → Done!</p>
         
         <form action="/signup" method="POST">
             <label for="chatId">Your Telegram Chat ID:</label>
-            <input type="text" id="chatId" name="chatId" required placeholder="e.g., 123456789" pattern="\d+" title="Only numbers allowed">
-            <button type="submit">Sign Up & Get Alerts</button>
+            <input type="number" 
+                   id="chatId" 
+                   name="chatId" 
+                   required 
+                   min="100000000" 
+                   max="9999999999" 
+                   placeholder="123456789"
+                   step="1"
+                   autocomplete="off">
+            <button type="submit">✅ Sign Up for Alerts</button>
         </form>
         
         <% if (message) { %>
-            <p class="message"><%= message %></p>
+            <div class="message"><%= message %></div>
         <% } %>
+        
+        <p style="font-size: 14px; color: #666; text-align: center; margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+            <strong>🟢 Status:</strong> Bot live • Scrapes CISIA every 30s • <strong>Free forever</strong> (Render Free)<br>
+            <small>Hosted by <a href="https://render.com">Render</a> | Source: <a href="https://github.com/navdeepg053-cpu/Cisia_alerts_bot">GitHub</a></small>
+        </p>
     </div>
 </body>
 </html>
