@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import TelegramBot from 'node-telegram-bot-api';
 import path from 'path';
 import fs from 'fs';
