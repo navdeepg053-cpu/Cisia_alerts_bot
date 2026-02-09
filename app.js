@@ -21,22 +21,19 @@ const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.j
 const adapter = new JSONFile(dbPath);
 const db = new Low(adapter);
 
-// Wrap db init in async function to use await at top level
-(async () => {
-  // Set defaults FIRST (prevents "missing default data" on first run)
+// Set defaults FIRST (prevents "missing default data" on first run)
+db.data = { users: [], lastStatus: false };
+
+// Now safe to read (overrides defaults with existing data if file not empty)
+await db.read();
+
+// If data is still null after read (rare edge case), reset
+if (!db.data) {
   db.data = { users: [], lastStatus: false };
+}
 
-  // Now safe to read (overrides defaults with existing data if file not empty)
-  await db.read();
-
-  // If data is still null after read (rare edge case), reset
-  if (!db.data) {
-    db.data = { users: [], lastStatus: false };
-  }
-
-  // Write to ensure file exists and defaults are persisted
-  await db.write();
-})();
+// Write to ensure file exists and defaults are persisted
+await db.write();
 
 const PORT = process.env.PORT || 3000;
 
@@ -67,7 +64,7 @@ app.post('/signup', (req, res) => {
     return res.render('index', { message: 'You are already signed up.' });
   }
   db.data.users.push({ chatId });
-  db.write();
+  await db.write();  // Use await for async write
   res.render('index', { message: 'Signed up successfully! You will be alerted when spots open.' });
 });
 
