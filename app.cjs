@@ -20,7 +20,7 @@ let bot;
 
 console.log("Bot init starting...");
 
-const token = "8508645820:AAEkpJJ9qvy8ukTHlJb86zibjaRn3zSV5iI";
+const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
   console.error('Error: TELEGRAM_BOT_TOKEN env var not set');
   process.exit(1);
