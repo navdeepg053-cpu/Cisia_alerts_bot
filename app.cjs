@@ -11,8 +11,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-// Persistent storage for Render
-const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.json';
+// Database path - uses current directory (writable on Render free tier)
+const dbPath = './db.json';
 
 // Global db reference
 let db;
