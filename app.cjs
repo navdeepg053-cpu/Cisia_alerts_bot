@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Low } = require('lowdb');
-const { Memory } = require('lowdb/node');
+const { LowSync } = require('lowdb');
+const { JSONFileSync } = require('lowdb/node');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
@@ -32,14 +32,12 @@ bot = new TelegramBot(token, { polling: true });
 console.log("Bot created - polling should be active");
 
 // Initialize database
-(async () => {
-  const adapter = new Memory();
-  db = new Low(adapter, { users: [], lastStatus: false });
-  await db.read();
-  db.data ||= { users: [], lastStatus: false };
-  await db.write();
-  console.log("✅ Database initialized");
-})();
+const adapter = new JSONFileSync('./db.json');
+db = new LowSync(adapter, { users: [], lastStatus: false });
+db.read();
+db.data ||= { users: [], lastStatus: false };
+db.write();
+console.log("✅ Database initialized");
 
 const PORT = process.env.PORT || 3000;
 
@@ -68,7 +66,7 @@ app.post('/signup', async (req, res) => {
   }
   
   db.data.users.push({ chatId });
-  await db.write();
+  db.write();
   res.render('index', { message: 'Signed up! Alerts when spots open.' });
 });
 
@@ -120,7 +118,7 @@ async function sendWithRetry(chatId, message, retries = 3) {
         // Clean bad user
         if (db?.data) {
           db.data.users = db.data.users.filter(u => u.chatId !== chatId);
-          await db.write();
+          db.write();
         }
       }
       await new Promise(r => setTimeout(r, 1000 * (i + 1)));
@@ -147,11 +145,11 @@ Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
       }
       
       db.data.lastStatus = true;
-      await db.write();
+      db.write();
     } else if (!currentStatus && lastStatus) {
       console.log('No spots, resetting status.');
       db.data.lastStatus = false;
-      await db.write();
+      db.write();
     }
   } catch (error) {
     console.error('Alert error:', error.message);
