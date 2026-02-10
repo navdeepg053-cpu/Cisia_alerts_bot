@@ -2,11 +2,11 @@
   "name": "cisia_alerts_bot",
   "version": "1.0.0",
   "description": "CISIA spot alerts via Telegram",
-  "main": "app.js",
-  "type": "module",
+  "main": "app.cjs",
+
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node app.cjs",
+    "dev": "nodemon app.cjs",
     "lint": "eslint ."
   },
   "dependencies": {

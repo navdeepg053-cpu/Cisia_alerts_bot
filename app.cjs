@@ -1,10 +1,10 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
-import axios from 'axios';
-import * as cheerio from 'cheerio';
-import TelegramBot from 'node-telegram-bot-api';
+const express = require('express');
+const bodyParser = require('body-parser');
+const { Low } = require('lowdb');
+const { Memory } = require('lowdb/node');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const TelegramBot = require('node-telegram-bot-api');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,21 +18,18 @@ const dbPath = process.env.NODE_ENV === 'production' ? '/data/db.json' : './db.j
 let db;
 let bot;
 
-// IIFE for async DB/bot init (Render/Node compatible)
-(async () => {
-  const adapter = new JSONFile(dbPath);
-  db = new Low(adapter, { users: [], lastStatus: false });
-  db.data ??= { users: [], lastStatus: false };
-  await db.read();
-  await db.write();
+console.log("Bot init starting...");
 
-  const token = "8257176038:AAE5jdCQvA-CcgMacMOoJlDyVgUoLNOCf8A";
-  if (!token) {
-    console.error('Error: TELEGRAM_BOT_TOKEN env var not set');
-    process.exit(1);
-  }
-  bot = new TelegramBot(token, { polling: true });
-})();
+const token = "8508645820:AAEkpJJ9qvy8ukTHlJb86zibjaRn3zSV5iI";
+if (!token) {
+  console.error('Error: TELEGRAM_BOT_TOKEN env var not set');
+  process.exit(1);
+}
+
+console.log("Token loaded, creating bot...");
+bot = new TelegramBot(token, { polling: true });
+
+console.log("Bot created - polling should be active");
 
 const PORT = process.env.PORT || 3000;
 
@@ -42,7 +39,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/users', (req, res) => {
-  if (!db?.data) return res.status(500).json({ error: 'DB not ready' });
+  if (!db) return res.status(500).json({ error: 'DB not ready' });
   res.json({ count: db.data.users.length, users: db.data.users });
 });
 
@@ -159,6 +156,6 @@ setInterval(checkAndAlert, 30000);
 setTimeout(checkAndAlert, 5000);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server on port ${PORT} | Scraping CISIA every 30s`);
-  console.log(`👥 Check /users endpoint for signed up count`);
+  console.log(`Server on port ${PORT} | Scraping CISIA every 30s`);
+  console.log(`Check /users endpoint for signed up count`);
 });
