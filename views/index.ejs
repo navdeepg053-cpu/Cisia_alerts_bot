@@ -7,37 +7,102 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🚨 CISIA Spot Alerts</h1>
-        <p><strong>Free Telegram alerts</strong> when CENT@HOME or CENT@CASA spots open on <a href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese" target="_blank">CISIA calendar</a>. Checks every 30 seconds.</p>
-        
-        <p><strong>Get your Chat ID (30 seconds):</strong><br>
-        1️⃣ Open Telegram → Search <code>@userinfobot</code> or <code>@RawDataBot</code><br>
-        2️⃣ Send <code>/start</code> → Copy your ID (long number like <code>123456789</code>)<br>
-        3️⃣ Paste below → Done!</p>
-        
-        <form action="/signup" method="POST">
-            <label for="chatId">Your Telegram Chat ID:</label>
-            <input type="number" 
-                   id="chatId" 
-                   name="chatId" 
-                   required 
-                   min="100000000" 
-                   max="9999999999" 
-                   placeholder="123456789"
-                   step="1"
-                   autocomplete="off">
-            <button type="submit">✅ Sign Up for Alerts</button>
-        </form>
-        
-        <% if (message) { %>
-            <div class="message"><%= message %></div>
-        <% } %>
-        
-        <p style="font-size: 14px; color: #666; text-align: center; margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-            <strong>🟢 Status:</strong> Bot live • Scrapes CISIA every 30s • <strong>Free forever</strong> (Render Free)<br>
-            <small>Hosted by <a href="https://render.com">Render</a> | Source: <a href="https://github.com/navdeepg053-cpu/Cisia_alerts_bot">GitHub</a></small>
-        </p>
+    <div class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge">🚀 Free Forever</div>
+                <h1>🚨 CISIA Spot Alerts</h1>
+                <p class="hero-subtitle">Never miss a CENT@HOME or CENT@CASA spot opening again</p>
+                <p class="hero-description">Get instant Telegram notifications when test spots become available on the official <a href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese" target="_blank" rel="noopener noreferrer">CISIA calendar</a>. Automated checks every 30 seconds.</p>
+            </div>
+            
+            <div class="card signup-card">
+                <h2>📝 Sign Up for Alerts</h2>
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Get Your Chat ID</strong>
+                            <p>Open Telegram and search for <code>@Cent_alerting_bot</code></p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Start the Bot</strong>
+                            <p>Send <code>/start</code> to the bot - it will reply with your Chat ID</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Register Below</strong>
+                            <p>Copy your Chat ID (e.g., <code>123456789</code>) and paste it here</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form action="/signup" method="POST">
+                    <label for="chatId">Your Telegram Chat ID</label>
+                    <input type="number" 
+                           id="chatId" 
+                           name="chatId" 
+                           required 
+                           min="100000000" 
+                           max="9999999999" 
+                           placeholder="123456789"
+                           step="1"
+                           autocomplete="off"
+                           aria-label="Enter your Telegram Chat ID">
+                    <button type="submit" class="btn-primary">
+                        <span>✅ Start Receiving Alerts</span>
+                    </button>
+                </form>
+                
+                <% if (message) { %>
+                    <div class="message" role="alert"><%= message %></div>
+                <% } %>
+            </div>
+            
+            <div class="info-section">
+                <div class="card info-card">
+                    <h3>⚡ How It Works</h3>
+                    <ul>
+                        <li>Automated monitoring of CISIA test availability 24/7</li>
+                        <li>Instant Telegram alerts when spots open</li>
+                        <li>Check the official bot at <a href="https://t.me/Cent_alerting_bot" target="_blank" rel="noopener noreferrer">@Cent_alerting_bot</a></li>
+                        <li>No spam - only alerts when spots actually become available</li>
+                    </ul>
+                </div>
+                
+                <div class="card status-card">
+                    <h3>🟢 System Status</h3>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">Bot Status</span>
+                            <span class="status-value active">● Live</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Check Interval</span>
+                            <span class="status-value">30 seconds</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Availability</span>
+                            <span class="status-value">24/7</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Cost</span>
+                            <span class="status-value">Free Forever</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <footer class="footer">
+                <p>Hosted on <a href="https://render.com" target="_blank" rel="noopener noreferrer">Render</a> • Open Source on <a href="https://github.com/navdeepg053-cpu/Cisia_alerts_bot" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+                <p class="footer-note">This is an independent service and is not affiliated with CISIA</p>
+            </footer>
+        </div>
     </div>
 </body>
 </html>
