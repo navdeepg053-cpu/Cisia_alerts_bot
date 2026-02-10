@@ -3,106 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CISIA Spot Alerts - CENT@HOME/CASA</title>
+    <title>CISIA Alert Bot - Never Miss a Test Spot</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="badge">🚀 Free Forever</div>
-                <h1>🚨 CISIA Spot Alerts</h1>
-                <p class="hero-subtitle">Never miss a CENT@HOME or CENT@CASA spot opening again</p>
-                <p class="hero-description">Get instant Telegram notifications when test spots become available on the official <a href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese" target="_blank" rel="noopener noreferrer">CISIA calendar</a>. Automated checks every 30 seconds.</p>
+    <div class="particles-bg" id="particles"></div>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎯</span>
+                <span class="logo-text">CISIA Alert</span>
             </div>
-            
-            <div class="card signup-card">
-                <h2>📝 Sign Up for Alerts</h2>
-                <div class="steps">
-                    <div class="step">
-                        <span class="step-number">1</span>
-                        <div class="step-content">
-                            <strong>Get Your Chat ID</strong>
-                            <p>Open Telegram and search for <code>@Cent_alerting_bot</code></p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <span class="step-number">2</span>
-                        <div class="step-content">
-                            <strong>Start the Bot</strong>
-                            <p>Send <code>/start</code> to the bot - it will reply with your Chat ID</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <span class="step-number">3</span>
-                        <div class="step-content">
-                            <strong>Register Below</strong>
-                            <p>Copy your Chat ID (e.g., <code>123456789</code>) and paste it here</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <form action="/signup" method="POST">
-                    <label for="chatId">Your Telegram Chat ID</label>
-                    <input type="number" 
-                           id="chatId" 
-                           name="chatId" 
-                           required 
-                           min="100000000" 
-                           max="9999999999" 
-                           placeholder="123456789"
-                           step="1"
-                           autocomplete="off"
-                           aria-label="Enter your Telegram Chat ID">
-                    <button type="submit" class="btn-primary">
-                        <span>✅ Start Receiving Alerts</span>
-                    </button>
-                </form>
-                
-                <% if (message) { %>
-                    <div class="message" role="alert"><%= message %></div>
-                <% } %>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="/auth/google" class="btn-nav-signin">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Sign in with Google
+                </a>
             </div>
-            
-            <div class="info-section">
-                <div class="card info-card">
-                    <h3>⚡ How It Works</h3>
-                    <ul>
-                        <li>Automated monitoring of CISIA test availability 24/7</li>
-                        <li>Instant Telegram alerts when spots open</li>
-                        <li>Check the official bot at <a href="https://t.me/Cent_alerting_bot" target="_blank" rel="noopener noreferrer">@Cent_alerting_bot</a></li>
-                        <li>No spam - only alerts when spots actually become available</li>
-                    </ul>
-                </div>
-                
-                <div class="card status-card">
-                    <h3>🟢 System Status</h3>
-                    <div class="status-grid">
-                        <div class="status-item">
-                            <span class="status-label">Bot Status</span>
-                            <span class="status-value active">● Live</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Check Interval</span>
-                            <span class="status-value">30 seconds</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Availability</span>
-                            <span class="status-value">24/7</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Cost</span>
-                            <span class="status-value">Free Forever</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <footer class="footer">
-                <p>Hosted on <a href="https://render.com" target="_blank" rel="noopener noreferrer">Render</a> • Open Source on <a href="https://github.com/navdeepg053-cpu/Cisia_alerts_bot" target="_blank" rel="noopener noreferrer">GitHub</a></p>
-                <p class="footer-note">This is an independent service and is not affiliated with CISIA</p>
-            </footer>
         </div>
-    </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                <span>Live Monitoring 24/7</span>
+            </div>
+            <h1 class="hero-title">
+                Never Miss a
+                <span class="gradient-text">CENT@HOME</span>
+                Test Spot Again
+            </h1>
+            <p class="hero-subtitle">
+                Real-time Telegram alerts when CISIA test spots become available.
+                Automated monitoring every 40 seconds.
+            </p>
+            <div class="hero-actions">
+                <a href="/auth/google" class="btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Get Started Free
+                </a>
+                <a href="#how-it-works" class="btn-secondary">
+                    <span>Learn More</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-value">40s</div>
+                    <div class="stat-label">Check Interval</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Monitoring</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-value">Free</div>
+                    <div class="stat-label">Forever</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features-section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Why Choose CISIA Alert?</h2>
+                <p class="section-subtitle">Powerful features to help you secure your test spot</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Lightning Fast</h3>
+                    <p class="feature-description">Automated checks every 40 seconds ensure you're the first to know when spots open.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3 class="feature-title">Instant Alerts</h3>
+                    <p class="feature-description">Get immediate Telegram notifications the moment CENT@HOME or CENT@CASA spots become available.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">Secure Sign-In</h3>
+                    <p class="feature-description">Google OAuth authentication keeps your account safe and secure.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">Precise Monitoring</h3>
+                    <p class="feature-description">Advanced scraping technology monitors the official CISIA calendar with high accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Mobile Ready</h3>
+                    <p class="feature-description">Receive alerts on any device through Telegram - iOS, Android, or Desktop.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💎</div>
+                    <h3 class="feature-title">Always Free</h3>
+                    <p class="feature-description">No hidden costs, no premium plans. All features are completely free forever.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Get Started in 3 Simple Steps</h2>
+                <p class="section-subtitle">Setup takes less than 2 minutes</p>
+            </div>
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Sign in with Google</h3>
+                        <p class="step-description">Click the "Sign in with Google" button above to authenticate securely.</p>
+                    </div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Get Your Telegram Chat ID</h3>
+                        <p class="step-description">Open <a href="https://t.me/Cent_alertbot" target="_blank" class="link-primary">@Cent_alertbot</a> on Telegram and send /start to get your Chat ID.</p>
+                    </div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Enter Your Chat ID</h3>
+                        <p class="step-description">Add your Chat ID in the dashboard and start receiving instant alerts!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Never Miss a Spot?</h2>
+                <p class="cta-subtitle">Join now and get instant alerts when CISIA test spots open</p>
+                <a href="/auth/google" class="btn-cta">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Sign In with Google - It's Free
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <span class="logo-icon">🎯</span>
+                        <span class="logo-text">CISIA Alert</span>
+                    </div>
+                    <p class="footer-tagline">Never miss a CENT@HOME test spot</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese" target="_blank" class="footer-link">Official CISIA Calendar</a>
+                    <a href="https://t.me/Cent_alertbot" target="_blank" class="footer-link">Telegram Bot</a>
+                    <a href="https://github.com/navdeepg053-cpu/Cisia_alerts_bot" target="_blank" class="footer-link">GitHub</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 CISIA Alert Bot. Not affiliated with CISIA.</p>
+                <p>Hosted on <a href="https://render.com" target="_blank" class="footer-link-inline">Render</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Particle animation
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .step-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
