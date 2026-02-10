@@ -15,9 +15,14 @@ app.use(bodyParser.json());
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-// Session configuration
+// Session configuration - validate required env var
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('Error: SESSION_SECRET environment variable must be set in production');
+  process.exit(1);
+}
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'cisia-alert-bot-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'dev-secret-key-only-for-local-development',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -39,7 +44,9 @@ let bot;
 
 console.log("Bot init starting...");
 
-const token = '8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY';
+// Telegram bot token - using token provided in requirements
+// Can be overridden with TELEGRAM_BOT_TOKEN environment variable if needed
+const token = process.env.TELEGRAM_BOT_TOKEN || '8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY';
 console.log("Token loaded, creating bot...");
 bot = new TelegramBot(token, { polling: true });
 
@@ -51,10 +58,17 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, `✅ Your Chat ID is: ${chatId}\n\nCopy this ID and use it to register on the CISIA Alert website.`);
 });
 
-// Passport Google OAuth Strategy
+// Passport Google OAuth Strategy - validate required env vars
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_CALLBACK_URL) {
+    console.error('Error: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL must be set in production');
+    process.exit(1);
+  }
+}
+
 passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID || 'your-google-client-id',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'your-google-client-secret',
+    clientID: process.env.GOOGLE_CLIENT_ID || 'not-configured',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'not-configured',
     callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/auth/google/callback'
   },
   (accessToken, refreshToken, profile, done) => {
