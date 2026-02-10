@@ -32,7 +32,7 @@ bot = new TelegramBot(token, { polling: true });
 console.log("Bot created - polling should be active");
 
 // Initialize database
-const adapter = new JSONFileSync('./db.json');
+const adapter = new JSONFileSync(dbPath);
 db = new LowSync(adapter, { users: [], lastStatus: false });
 db.read();
 db.data ||= { users: [], lastStatus: false };
