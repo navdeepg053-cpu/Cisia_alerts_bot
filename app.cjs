@@ -1,5 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { LowSync } = require('lowdb');
 const { JSONFileSync } = require('lowdb/node');
 const axios = require('axios');
@@ -8,8 +11,24 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'cisia-alert-bot-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Database path - uses current directory (writable on Render free tier)
 const dbPath = './db.json';
@@ -20,16 +39,42 @@ let bot;
 
 console.log("Bot init starting...");
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-if (!token) {
-  console.error('Error: TELEGRAM_BOT_TOKEN env var not set');
-  process.exit(1);
-}
-
+const token = '8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY';
 console.log("Token loaded, creating bot...");
 bot = new TelegramBot(token, { polling: true });
 
 console.log("Bot created - polling should be active");
+
+// Handle /start command to send Chat ID
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, `✅ Your Chat ID is: ${chatId}\n\nCopy this ID and use it to register on the CISIA Alert website.`);
+});
+
+// Passport Google OAuth Strategy
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID || 'your-google-client-id',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'your-google-client-secret',
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/auth/google/callback'
+  },
+  (accessToken, refreshToken, profile, done) => {
+    // Store user profile in session
+    return done(null, {
+      id: profile.id,
+      email: profile.emails[0].value,
+      name: profile.displayName,
+      photo: profile.photos[0]?.value
+    });
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
 
 // Initialize database
 const adapter = new JSONFileSync(dbPath);
@@ -41,9 +86,88 @@ console.log("✅ Database initialized");
 
 const PORT = process.env.PORT || 3000;
 
+// Middleware to check if user is authenticated
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+}
+
 // Routes
 app.get('/', (req, res) => {
-  res.render('index', { message: '' });
+  if (req.isAuthenticated()) {
+    res.redirect('/dashboard');
+  } else {
+    res.render('index');
+  }
+});
+
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    res.redirect('/dashboard');
+  }
+);
+
+app.get('/dashboard', isAuthenticated, (req, res) => {
+  if (!db) return res.status(500).send('Database not ready');
+  
+  // Find if user already has chat ID registered
+  const userEntry = db.data.users.find(u => u.email === req.user.email);
+  
+  res.render('dashboard', { 
+    user: req.user,
+    chatId: userEntry?.chatId || null,
+    message: ''
+  });
+});
+
+app.post('/update-chatid', isAuthenticated, async (req, res) => {
+  const chatId = req.body.chatId?.trim();
+  
+  if (!chatId || !/^\d+$/.test(chatId)) {
+    return res.render('dashboard', { 
+      user: req.user,
+      chatId: null,
+      message: 'Invalid Chat ID: Must be a number.' 
+    });
+  }
+  
+  if (!db?.data) {
+    return res.render('dashboard', { 
+      user: req.user,
+      chatId: null,
+      message: 'Service initializing, try again shortly.' 
+    });
+  }
+  
+  // Remove old entry if exists and add new one
+  db.data.users = db.data.users.filter(u => u.email !== req.user.email);
+  db.data.users.push({ 
+    email: req.user.email, 
+    chatId,
+    name: req.user.name,
+    registeredAt: new Date().toISOString()
+  });
+  db.write();
+  
+  res.render('dashboard', { 
+    user: req.user,
+    chatId,
+    message: '✅ Chat ID saved! You will receive alerts when spots open.' 
+  });
+});
+
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) console.error('Logout error:', err);
+    res.redirect('/');
+  });
 });
 
 app.get('/users', (req, res) => {
@@ -156,13 +280,13 @@ Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
   }
 }
 
-// Poll every 30s
-setInterval(checkAndAlert, 30000);
+// Poll every 40s
+setInterval(checkAndAlert, 40000);
 
 // Startup check after delay
 setTimeout(checkAndAlert, 5000);
 
 app.listen(PORT, () => {
-  console.log(`Server on port ${PORT} | Scraping CISIA every 30s`);
+  console.log(`Server on port ${PORT} | Scraping CISIA every 40s`);
   console.log(`Check /users endpoint for signed up count`);
 });

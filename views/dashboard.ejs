@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CISIA Alert Bot</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="particles-bg" id="particles"></div>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎯</span>
+                <span class="logo-text">CISIA Alert</span>
+            </div>
+            <div class="nav-links">
+                <div class="user-info">
+                    <% if (user.photo) { %>
+                        <img src="<%= user.photo %>" alt="<%= user.name %>" class="user-avatar">
+                    <% } else { %>
+                        <div class="user-avatar-placeholder"><%= user.name.charAt(0) %></div>
+                    <% } %>
+                    <span class="user-name"><%= user.name %></span>
+                </div>
+                <a href="/logout" class="btn-logout">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="dashboard-section">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Welcome, <%= user.name.split(' ')[0] %>! 👋</h1>
+                <p class="dashboard-subtitle">Configure your alerts below</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card main-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-icon">🔔</span>
+                            Telegram Alert Configuration
+                        </h2>
+                    </div>
+                    
+                    <% if (chatId) { %>
+                        <div class="alert-success">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <div>
+                                <strong>You're all set!</strong>
+                                <p>Alerts will be sent to Chat ID: <code><%= chatId %></code></p>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    <div class="setup-steps">
+                        <div class="setup-step">
+                            <div class="step-badge">Step 1</div>
+                            <div class="step-info">
+                                <h3>Open Telegram Bot</h3>
+                                <p>Click the button below to open our Telegram bot</p>
+                                <a href="https://t.me/Cent_alertbot" target="_blank" class="btn-telegram">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
+                                    </svg>
+                                    Open @Cent_alertbot
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="step-divider">↓</div>
+
+                        <div class="setup-step">
+                            <div class="step-badge">Step 2</div>
+                            <div class="step-info">
+                                <h3>Get Your Chat ID</h3>
+                                <p>Send <code>/start</code> to the bot. It will reply with your unique Chat ID.</p>
+                                <div class="code-block">
+                                    <code>/start</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step-divider">↓</div>
+
+                        <div class="setup-step">
+                            <div class="step-badge">Step 3</div>
+                            <div class="step-info">
+                                <h3>Enter Your Chat ID</h3>
+                                <form action="/update-chatid" method="POST" class="chatid-form">
+                                    <div class="form-group">
+                                        <label for="chatId">Telegram Chat ID</label>
+                                        <input 
+                                            type="number" 
+                                            id="chatId" 
+                                            name="chatId" 
+                                            value="<%= chatId || '' %>"
+                                            placeholder="123456789" 
+                                            required 
+                                            min="100000000"
+                                            class="form-input"
+                                        >
+                                    </div>
+                                    <button type="submit" class="btn-save">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                            <polyline points="7 3 7 8 15 8"></polyline>
+                                        </svg>
+                                        Save Chat ID
+                                    </button>
+                                </form>
+                                <% if (message) { %>
+                                    <div class="form-message <%= message.includes('✅') ? 'success' : 'error' %>">
+                                        <%= message %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title-small">
+                                <span class="status-dot live"></span>
+                                System Status
+                            </h3>
+                        </div>
+                        <div class="status-list">
+                            <div class="status-row">
+                                <span class="status-label">Monitoring</span>
+                                <span class="status-badge active">Live</span>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-label">Check Interval</span>
+                                <span class="status-value">40 seconds</span>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-label">Target</span>
+                                <span class="status-value">CENT@HOME/CASA</span>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-label">Service</span>
+                                <span class="status-badge free">Free</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title-small">
+                                <span class="card-icon-small">ℹ️</span>
+                                How It Works
+                            </h3>
+                        </div>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="info-bullet">✓</span>
+                                <span>Checks CISIA calendar every 40 seconds</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-bullet">✓</span>
+                                <span>Sends instant Telegram alerts</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-bullet">✓</span>
+                                <span>Monitors CENT@HOME & CENT@CASA</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-bullet">✓</span>
+                                <span>No spam - only real updates</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title-small">
+                                <span class="card-icon-small">🔗</span>
+                                Quick Links
+                            </h3>
+                        </div>
+                        <div class="links-list">
+                            <a href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese" target="_blank" class="quick-link">
+                                <span>CISIA Calendar</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
+                                </svg>
+                            </a>
+                            <a href="https://t.me/Cent_alertbot" target="_blank" class="quick-link">
+                                <span>Telegram Bot</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <p>© 2026 CISIA Alert Bot. Not affiliated with CISIA.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Particle animation
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+
+        // Auto-hide success message after 5 seconds
+        const message = document.querySelector('.form-message.success');
+        if (message) {
+            setTimeout(() => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
