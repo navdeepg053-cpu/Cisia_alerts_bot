@@ -31,6 +31,16 @@ bot = new TelegramBot(token, { polling: true });
 
 console.log("Bot created - polling should be active");
 
+// Initialize database
+(async () => {
+  const adapter = new Memory();
+  db = new Low(adapter, { users: [], lastStatus: false });
+  await db.read();
+  db.data ||= { users: [], lastStatus: false };
+  await db.write();
+  console.log("✅ Database initialized");
+})();
+
 const PORT = process.env.PORT || 3000;
 
 // Routes
@@ -45,7 +55,7 @@ app.get('/users', (req, res) => {
 
 app.post('/signup', async (req, res) => {
   const chatId = req.body.chatId?.trim();
-  if (!chatId || !/^d+$/.test(chatId)) {
+  if (!chatId || !/^\d+$/.test(chatId)) {
     return res.render('index', { message: 'Invalid Chat ID: Must be a number.' });
   }
   
@@ -84,7 +94,7 @@ async function checkSpots() {
         const seatsText = cells.eq(-1).text().toLowerCase().trim();
         
         if ((testType.includes('cent@home') || testType.includes('cent@casa')) &&
-            (seatsText.includes('available') || seatsText.includes('disponibili') || /d+s*(seats?|posti)/.test(seatsText))) {
+            (seatsText.includes('available') || seatsText.includes('disponibili') || /\d+\s*(seats?|posti)/.test(seatsText))) {
           console.log(`✅ SPOT FOUND: ${testType} - ${seatsText}`);
           return true;
         }
@@ -129,9 +139,8 @@ async function checkAndAlert() {
     
     if (currentStatus && !lastStatus) {
       console.log('🔔 SPOTS DETECTED! Alerting all users...');
-      const message = `CISIA Alert: CENT@HOME/CENT
-@CASA spots available!`;
-// Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
+      const message = `CISIA Alert: CENT@HOME/CENT@CASA spots available!
+Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
       
       for (const user of db.data.users) {
         await sendWithRetry(user.chatId, message);
