@@ -223,27 +223,56 @@ async function checkSpots() {
     const rows = $('table tr').slice(1); // Skip headers
     console.log(`🕵️ CISIA scrape: Found ${rows.length} table rows`);
     
+    const availableSpots = [];
+    
     for (const row of rows) {
       const cells = $(row).find('td');
-      if (cells.length >= 3) {
-        const testType = cells.eq(0).text().toLowerCase().trim();
-        const seatsText = cells.eq(-1).text().toLowerCase().trim();
+      if (cells.length === 8) {
+        // Parse 8-column table structure:
+        // 0: MODALITÀ (test type), 1: UNIVERSITÀ, 2: REGIONE STATO ESTERO, 
+        // 3: CITTÀ, 4: FINE ISCRIZIONI, 5: POSTI (seats), 6: STATO, 7: DATA TEST
+        const testType = cells.eq(0).text().trim();
+        const university = cells.eq(1).text().trim();
+        const region = cells.eq(2).text().trim();
+        const city = cells.eq(3).text().trim();
+        const bookingsDeadline = cells.eq(4).text().trim();
+        const seatsText = cells.eq(5).text().trim();
+        const status = cells.eq(6).text().trim();
+        const testDate = cells.eq(7).text().trim();
         
         // Detailed logging for debugging
-        console.log(`🔍 Row data - testType: "${testType}" | seatsText: "${seatsText}"`);
+        console.log(`🔍 Row data - testType: "${testType}" | seatsText: "${seatsText}" | city: "${city}"`);
         
-        if ((testType.includes('cent@home') || testType.includes('cent@casa')) &&
-            (seatsText.includes('available') || seatsText.includes('disponibili') || /\d+\s*(seats?|posti)/.test(seatsText))) {
-          console.log(`✅ SPOT FOUND: ${testType} - ${seatsText}`);
-          return true;
+        // Check if it's CENT@HOME/CENT@CASA and has available seats (positive integer)
+        if ((testType.toLowerCase().includes('cent@home') || testType.toLowerCase().includes('cent@casa')) &&
+            (seatsText.toLowerCase().includes('available') || seatsText.toLowerCase().includes('disponibili') || /\b[1-9]\d*\b/.test(seatsText))) {
+          console.log(`✅ SPOT FOUND: ${testType} at ${university} - ${seatsText} seats`);
+          availableSpots.push({
+            testType,
+            university,
+            region,
+            city,
+            bookingsDeadline,
+            seats: seatsText,
+            status,
+            testDate
+          });
         }
+      } else if (cells.length > 0) {
+        console.log(`⚠️ Warning: Found row with ${cells.length} columns (expected 8)`);
       }
     }
+    
+    if (availableSpots.length > 0) {
+      console.log(`✅ Total spots found: ${availableSpots.length}`);
+      return { available: true, spots: availableSpots };
+    }
+    
     console.log('❌ No CENT@HOME or CENT@CASA spots available');
-    return false;
+    return { available: false, spots: [] };
   } catch (error) {
     console.error('Scraper error:', error.message);
-    return false;
+    return { available: false, spots: [] };
   }
 }
 
@@ -273,13 +302,28 @@ async function checkAndAlert() {
   if (!db || !bot) return; // Wait for init
   
   try {
-    const currentStatus = await checkSpots();
+    const result = await checkSpots();
+    const currentStatus = result.available;
     const lastStatus = db.data.lastStatus;
     
     if (currentStatus && !lastStatus) {
       console.log('🔔 SPOTS DETECTED! Alerting all users...');
-      const message = `CISIA Alert: CENT@HOME spots available!
-Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
+      
+      // Build detailed message with all available spots
+      let message = `🎯 CISIA Alert: CENT@HOME/CENT@CASA spots available!\n\n`;
+      
+      for (const spot of result.spots) {
+        message += `📍 ${spot.testType}\n`;
+        message += `🏛️ University: ${spot.university}\n`;
+        message += `📌 City: ${spot.city}, ${spot.region}\n`;
+        message += `💺 Seats: ${spot.seats}\n`;
+        message += `📅 Test Date: ${spot.testDate}\n`;
+        message += `⏰ Deadline: ${spot.bookingsDeadline}\n`;
+        message += `✅ Status: ${spot.status}\n`;
+        message += `\n`;
+      }
+      
+      message += `🔗 Book now: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
       
       for (const user of db.data.users) {
         await sendWithRetry(user.chatId, message);
