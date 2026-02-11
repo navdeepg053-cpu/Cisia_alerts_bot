@@ -1,12 +1,12 @@
 # CISIA Alert Bot 🎯
 
-A professional web application that monitors CISIA test availability and sends real-time Telegram alerts when CENT@HOME or CENT@CASA spots become available.
+A professional web application that monitors CISIA test availability and sends real-time Telegram alerts when CENT@HOME spots become available.
 
 ## ✨ Features
 
 - **Google OAuth Authentication**: Secure sign-in with Google
 - **Real-time Monitoring**: Automated checks every 40 seconds
-- **Instant Telegram Alerts**: Get notified immediately when spots open
+- **Instant Telegram Alerts**: Get notified immediately when CENT@HOME spots open
 - **Modern Dark Theme UI**: Professional, fluid interface with animations
 - **Responsive Design**: Works perfectly on all devices
 - **Free Forever**: No hidden costs or premium plans
@@ -149,14 +149,15 @@ https://your-app-name.onrender.com/auth/google/callback
    - Click "Save Chat ID"
 
 4. **Receive Alerts**
-   - You'll get instant Telegram notifications when CENT@HOME or CENT@CASA spots become available
+   - You'll get instant Telegram notifications when CENT@HOME spots become available
 
 ## 🔍 Monitoring
 
 The application monitors:
 - **URL**: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese
 - **Interval**: Every 40 seconds
-- **Targets**: CENT@HOME and CENT@CASA test spots
+- **Target**: CENT@HOME test spots
+- **Uptime**: 24/7 (subject to Render.com free tier limitations)
 
 ## 🏗️ Project Structure
 
