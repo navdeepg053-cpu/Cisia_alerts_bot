@@ -239,7 +239,7 @@ async function checkSpots() {
         }
       }
     }
-    console.log('❌ No CENT@HOME/CASA spots available');
+    console.log('❌ No CENT@HOME spots available');
     return false;
   } catch (error) {
     console.error('Scraper error:', error.message);
@@ -278,7 +278,7 @@ async function checkAndAlert() {
     
     if (currentStatus && !lastStatus) {
       console.log('🔔 SPOTS DETECTED! Alerting all users...');
-      const message = `CISIA Alert: CENT@HOME/CENT@CASA spots available!
+      const message = `CISIA Alert: CENT@HOME spots available!
 Check: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
       
       for (const user of db.data.users) {
