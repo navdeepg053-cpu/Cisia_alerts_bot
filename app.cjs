@@ -1,3 +1,5 @@
+console.log('🚀 Bot script started at', new Date().toISOString());
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -48,15 +50,34 @@ console.log("Bot init starting...");
 // Can be overridden with TELEGRAM_BOT_TOKEN environment variable if needed
 const token = process.env.TELEGRAM_BOT_TOKEN || '8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY';
 console.log("Token loaded, creating bot...");
-bot = new TelegramBot(token, { polling: true });
 
-console.log("Bot created - polling should be active");
-
-// Handle /start command to send Chat ID
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, `✅ Your Chat ID is: ${chatId}\n\nCopy this ID and use it to register on the CISIA Alert website.`);
-});
+try {
+  bot = new TelegramBot(token, { polling: true });
+  console.log("Bot created - polling should be active");
+  
+  // Handle /start command to send Chat ID
+  bot.onText(/\/start/, (msg) => {
+    try {
+      const chatId = msg.chat.id;
+      bot.sendMessage(chatId, `✅ Your Chat ID is: ${chatId}\n\nCopy this ID and use it to register on the CISIA Alert website.`);
+    } catch (error) {
+      console.error('Error handling /start command:', error.message);
+    }
+  });
+  
+  // Handle polling errors
+  bot.on('polling_error', (error) => {
+    console.error('Telegram polling error:', error.code, error.message);
+  });
+  
+  // Handle webhook errors
+  bot.on('webhook_error', (error) => {
+    console.error('Telegram webhook error:', error.code, error.message);
+  });
+} catch (error) {
+  console.error('Failed to initialize Telegram bot:', error.message);
+  process.exit(1);
+}
 
 // Passport Google OAuth Strategy - validate required env vars
 if (process.env.NODE_ENV === 'production') {
@@ -91,12 +112,17 @@ passport.deserializeUser((user, done) => {
 });
 
 // Initialize database
-const adapter = new JSONFileSync(dbPath);
-db = new LowSync(adapter, { users: [], lastStatus: false });
-db.read();
-db.data ||= { users: [], lastStatus: false };
-db.write();
-console.log("✅ Database initialized");
+try {
+  const adapter = new JSONFileSync(dbPath);
+  db = new LowSync(adapter, { users: [], lastStatus: false });
+  db.read();
+  db.data ||= { users: [], lastStatus: false };
+  db.write();
+  console.log("✅ Database initialized");
+} catch (error) {
+  console.error('Failed to initialize database:', error.message);
+  process.exit(1);
+}
 
 const PORT = process.env.PORT || 3000;
 
@@ -108,13 +134,8 @@ function isAuthenticated(req, res, next) {
   res.redirect('/');
 }
 
-// Health check endpoint for Render to keep service alive
-app.get('/health', (req, res) => {
-  res.send('Bot is running');
-});
-
 // Routes
-// Health check endpoint for Render
+// Health check endpoint for Render to keep service alive
 app.get('/health', (req, res) => {
   res.send('Bot is running');
 });
@@ -392,7 +413,29 @@ setInterval(checkAndAlert, 40000);
 // Startup check after delay
 setTimeout(checkAndAlert, 5000);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server on port ${PORT} | Scraping CISIA every 40s`);
   console.log(`Check /users endpoint for signed up count`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error.message);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    if (bot) {
+      bot.stopPolling();
+      console.log('Bot polling stopped');
+    }
+    process.exit(0);
+  });
 });
