@@ -243,8 +243,8 @@ async function checkSpots() {
         // Detailed logging for debugging
         console.log(`🔍 Row data - testType: "${testType}" | seatsText: "${seatsText}" | city: "${city}"`);
         
-        // Check if it's CENT@HOME/CENT@CASA and has available seats (positive integer)
-        if ((testType.toLowerCase().includes('cent@home') || testType.toLowerCase().includes('cent@casa')) &&
+        // Check if it's CENT@CASA and has available seats (positive integer)
+        if (testType.toLowerCase().includes('cent@casa') &&
             (seatsText.toLowerCase().includes('available') || seatsText.toLowerCase().includes('disponibili') || /\b[1-9]\d*\b/.test(seatsText))) {
           console.log(`✅ SPOT FOUND: ${testType} at ${university} - ${seatsText} seats`);
           availableSpots.push({
@@ -268,7 +268,7 @@ async function checkSpots() {
       return { available: true, spots: availableSpots };
     }
     
-    console.log('❌ No CENT@HOME or CENT@CASA spots available');
+    console.log('❌ No CENT@CASA spots available');
     return { available: false, spots: [] };
   } catch (error) {
     console.error('Scraper error:', error.message);
@@ -276,22 +276,33 @@ async function checkSpots() {
   }
 }
 
-// Retry Telegram sender
+// Retry Telegram sender with enhanced error handling and logging
 async function sendWithRetry(chatId, message, retries = 3) {
+  console.log(`📤 Attempting to send alert to chatId ${chatId}...`);
+  
   for (let i = 0; i < retries; i++) {
     try {
       await bot.sendMessage(chatId, message);
+      console.log(`✅ Alert sent successfully to chatId ${chatId}`);
       return true;
     } catch (err) {
-      console.error(`Retry ${i+1}/${retries} for ${chatId}:`, err.message);
+      console.error(`❌ Failed to send alert to chatId ${chatId} (Attempt ${i+1}/${retries}):`, err.message);
+      
       if (i === retries - 1) {
-        // Clean bad user
+        // After all retries failed, log critical error and clean bad user
+        console.error(`🚨 CRITICAL: Failed to send alert to chatId ${chatId} after ${retries} attempts. Removing user from database.`);
         if (db?.data) {
           db.data.users = db.data.users.filter(u => u.chatId !== chatId);
           db.write();
+          console.log(`🗑️ Removed invalid chatId ${chatId} from database`);
         }
+        return false;
       }
-      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+      
+      // Wait before retry with increasing delay
+      const waitTime = 1000 * (i + 1);
+      console.log(`⏳ Retrying in ${waitTime}ms...`);
+      await new Promise(r => setTimeout(r, waitTime));
     }
   }
   return false;
@@ -310,7 +321,7 @@ async function checkAndAlert() {
       console.log('🔔 SPOTS DETECTED! Alerting all users...');
       
       // Build detailed message with all available spots
-      let message = `🎯 CISIA Alert: CENT@HOME/CENT@CASA spots available!\n\n`;
+      let message = `🎯 CISIA Alert: CENT@CASA spots available!\n\n`;
       
       for (const spot of result.spots) {
         message += `📍 ${spot.testType}\n`;
@@ -325,9 +336,21 @@ async function checkAndAlert() {
       
       message += `🔗 Book now: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
       
+      const totalUsers = db.data.users.length;
+      console.log(`📨 Sending alerts to ${totalUsers} users...`);
+      let successCount = 0;
+      let failureCount = 0;
+      
       for (const user of db.data.users) {
-        await sendWithRetry(user.chatId, message);
+        const success = await sendWithRetry(user.chatId, message);
+        if (success) {
+          successCount++;
+        } else {
+          failureCount++;
+        }
       }
+      
+      console.log(`📊 Alert summary: ${successCount} successful, ${failureCount} failed out of ${totalUsers} users`);
       
       db.data.lastStatus = true;
       db.write();
