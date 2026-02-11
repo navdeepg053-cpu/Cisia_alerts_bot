@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-CISIA Alert Bot is a modern web application that monitors CISIA test availability and sends real-time Telegram notifications when CENT@HOME or CENT@CASA spots become available.
+CISIA Alert Bot is a modern web application that monitors CISIA test availability and sends real-time Telegram notifications when CENT@HOME spots become available.
 
 ## ✨ Key Features
 
@@ -15,7 +15,7 @@ CISIA Alert Bot is a modern web application that monitors CISIA test availabilit
 ### 2. **Real-Time Monitoring**
 - Automated checks every 40 seconds
 - Monitors official CISIA calendar
-- Detects CENT@HOME and CENT@CASA availability
+- Detects CENT@HOME availability
 - Smart status tracking to avoid duplicate alerts
 
 ### 3. **Instant Telegram Alerts**
@@ -68,9 +68,8 @@ CISIA Alert Bot is a modern web application that monitors CISIA test availabilit
 
 You'll receive a notification when:
 - CENT@HOME spots become available
-- CENT@CASA spots become available
 - The calendar shows "available" or "disponibili" status
-- Seat counts are shown for these test types
+- Seat counts are shown for this test type
 
 You won't receive notifications when:
 - No spots are available
@@ -88,7 +87,7 @@ You won't receive notifications when:
 ### How It Works
 1. System fetches the CISIA calendar page
 2. Parses the HTML to find test availability
-3. Checks for CENT@HOME and CENT@CASA spots
+3. Checks for CENT@HOME spots
 4. Compares with previous status
 5. If spots opened since last check, sends alerts to all registered users
 6. Updates status to prevent duplicate alerts
@@ -177,7 +176,7 @@ A: Completely free! No hidden fees, no premium tiers.
 A: Currently, one Google account = one Chat ID. Sign in with different Google accounts for multiple Telegram accounts.
 
 **Q: Will this work for other CISIA tests?**
-A: Currently optimized for CENT@HOME and CENT@CASA only.
+A: Currently optimized for CENT@HOME only.
 
 **Q: How accurate is the monitoring?**
 A: Very accurate! We check the official CISIA calendar every 40 seconds using reliable web scraping.
@@ -197,7 +196,6 @@ A: The alert is sent the moment spots appear. Check Telegram frequently, and con
 
 This tool monitors:
 - **CENT@HOME** - Remote testing option
-- **CENT@CASA** - Home-based testing option
 
 Always verify availability on the official CISIA website before booking.
 
