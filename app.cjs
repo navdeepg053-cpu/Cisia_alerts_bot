@@ -229,7 +229,10 @@ async function checkSpots() {
         const testType = cells.eq(0).text().toLowerCase().trim();
         const seatsText = cells.eq(-1).text().toLowerCase().trim();
         
-        if (testType.includes('cent@home') &&
+        // Detailed logging for debugging
+        console.log(`🔍 Row data - testType: "${testType}" | seatsText: "${seatsText}"`);
+        
+        if ((testType.includes('cent@home') || testType.includes('cent@casa')) &&
             (seatsText.includes('available') || seatsText.includes('disponibili') || /\d+\s*(seats?|posti)/.test(seatsText))) {
           console.log(`✅ SPOT FOUND: ${testType} - ${seatsText}`);
           return true;
