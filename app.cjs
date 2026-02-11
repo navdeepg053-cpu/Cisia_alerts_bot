@@ -227,7 +227,7 @@ async function checkSpots() {
     
     for (const row of rows) {
       const cells = $(row).find('td');
-      if (cells.length >= 8) {
+      if (cells.length === 8) {
         // Parse 8-column table structure:
         // 0: MODALITÀ (test type), 1: UNIVERSITÀ, 2: REGIONE STATO ESTERO, 
         // 3: CITTÀ, 4: FINE ISCRIZIONI, 5: POSTI (seats), 6: STATO, 7: DATA TEST
@@ -243,8 +243,9 @@ async function checkSpots() {
         // Detailed logging for debugging
         console.log(`🔍 Row data - testType: "${testType}" | seatsText: "${seatsText}" | city: "${city}"`);
         
+        // Check if it's CENT@HOME/CENT@CASA and has available seats (positive integer)
         if ((testType.toLowerCase().includes('cent@home') || testType.toLowerCase().includes('cent@casa')) &&
-            (seatsText.toLowerCase().includes('available') || seatsText.toLowerCase().includes('disponibili') || /\d+/.test(seatsText))) {
+            (seatsText.toLowerCase().includes('available') || seatsText.toLowerCase().includes('disponibili') || /\b[1-9]\d*\b/.test(seatsText))) {
           console.log(`✅ SPOT FOUND: ${testType} at ${university} - ${seatsText} seats`);
           availableSpots.push({
             testType,
@@ -257,6 +258,8 @@ async function checkSpots() {
             testDate
           });
         }
+      } else if (cells.length > 0) {
+        console.log(`⚠️ Warning: Found row with ${cells.length} columns (expected 8)`);
       }
     }
     
