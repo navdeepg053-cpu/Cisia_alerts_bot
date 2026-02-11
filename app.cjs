@@ -239,7 +239,7 @@ async function checkSpots() {
         }
       }
     }
-    console.log('❌ No CENT@HOME spots available');
+    console.log('❌ No CENT@HOME or CENT@CASA spots available');
     return false;
   } catch (error) {
     console.error('Scraper error:', error.message);
