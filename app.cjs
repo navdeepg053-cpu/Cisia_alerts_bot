@@ -243,17 +243,20 @@ async function checkSpots() {
         // Detailed logging for debugging
         console.log(`🔍 Row data - testType: "${testType}" | seatsText: "${seatsText}" | city: "${city}"`);
         
-        // Check if it's CENT@CASA and has available seats (positive integer)
-        if (testType.toLowerCase().includes('cent@casa') &&
-            (seatsText.toLowerCase().includes('available') || seatsText.toLowerCase().includes('disponibili') || /\b[1-9]\d*\b/.test(seatsText))) {
-          console.log(`✅ SPOT FOUND: ${testType} at ${university} - ${seatsText} seats`);
+        // Check if it's CENT@CASA (in FORMAT column) and has available seats (numeric value > 0)
+        const isCentAtCasa = testType.toLowerCase().includes('cent@casa');
+        const seatsNumber = parseInt(seatsText, 10);
+        const hasAvailableSeats = !isNaN(seatsNumber) && seatsNumber > 0;
+        
+        if (isCentAtCasa && hasAvailableSeats) {
+          console.log(`✅ SPOT FOUND: ${testType} at ${university} - ${seatsNumber} seats available`);
           availableSpots.push({
             testType,
             university,
             region,
             city,
             bookingsDeadline,
-            seats: seatsText,
+            seats: seatsNumber,
             status,
             testDate
           });
@@ -286,11 +289,22 @@ async function sendWithRetry(chatId, message, retries = 3) {
       console.log(`✅ Alert sent successfully to chatId ${chatId}`);
       return true;
     } catch (err) {
-      console.error(`❌ Failed to send alert to chatId ${chatId} (Attempt ${i+1}/${retries}):`, err.message);
+      const errorDetails = {
+        chatId,
+        attempt: i + 1,
+        maxRetries: retries,
+        errorMessage: err.message,
+        errorCode: err.code,
+        errorResponse: err.response?.body
+      };
+      
+      console.error(`❌ Failed to send alert to chatId ${chatId} (Attempt ${i+1}/${retries}):`, JSON.stringify(errorDetails, null, 2));
       
       if (i === retries - 1) {
         // After all retries failed, log critical error and clean bad user
-        console.error(`🚨 CRITICAL: Failed to send alert to chatId ${chatId} after ${retries} attempts. Removing user from database.`);
+        console.error(`🚨 CRITICAL: Failed to send alert to chatId ${chatId} after ${retries} attempts.`);
+        console.error(`🚨 Error details:`, errorDetails);
+        
         if (db?.data) {
           db.data.users = db.data.users.filter(u => u.chatId !== chatId);
           db.write();
@@ -326,11 +340,10 @@ async function checkAndAlert() {
       for (const spot of result.spots) {
         message += `📍 ${spot.testType}\n`;
         message += `🏛️ University: ${spot.university}\n`;
-        message += `📌 City: ${spot.city}, ${spot.region}\n`;
-        message += `💺 Seats: ${spot.seats}\n`;
+        message += `📌 Location: ${spot.city}, ${spot.region}\n`;
         message += `📅 Test Date: ${spot.testDate}\n`;
         message += `⏰ Deadline: ${spot.bookingsDeadline}\n`;
-        message += `✅ Status: ${spot.status}\n`;
+        message += `💺 Spots: ${spot.seats}\n`;
         message += `\n`;
       }
       
