@@ -303,7 +303,6 @@ async function sendWithRetry(chatId, message, retries = 3) {
       if (i === retries - 1) {
         // After all retries failed, log critical error and clean bad user
         console.error(`🚨 CRITICAL: Failed to send alert to chatId ${chatId} after ${retries} attempts.`);
-        console.error(`🚨 Error details:`, errorDetails);
         
         if (db?.data) {
           db.data.users = db.data.users.filter(u => u.chatId !== chatId);
