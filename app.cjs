@@ -114,6 +114,11 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.send('Bot is running');
+});
+
 app.get('/', (req, res) => {
   if (req.isAuthenticated()) {
     res.redirect('/dashboard');
