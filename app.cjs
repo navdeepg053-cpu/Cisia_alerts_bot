@@ -108,6 +108,11 @@ function isAuthenticated(req, res, next) {
   res.redirect('/');
 }
 
+// Health check endpoint for Render to keep service alive
+app.get('/health', (req, res) => {
+  res.send('Bot is running');
+});
+
 // Routes
 app.get('/', (req, res) => {
   if (req.isAuthenticated()) {
