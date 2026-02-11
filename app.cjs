@@ -299,7 +299,7 @@ async function sendWithRetry(chatId, message, retries = 3) {
         return false;
       }
       
-      // Wait before retry with exponential backoff
+      // Wait before retry with increasing delay
       const waitTime = 1000 * (i + 1);
       console.log(`⏳ Retrying in ${waitTime}ms...`);
       await new Promise(r => setTimeout(r, waitTime));
@@ -336,7 +336,8 @@ async function checkAndAlert() {
       
       message += `🔗 Book now: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese`;
       
-      console.log(`📨 Sending alerts to ${db.data.users.length} users...`);
+      const totalUsers = db.data.users.length;
+      console.log(`📨 Sending alerts to ${totalUsers} users...`);
       let successCount = 0;
       let failureCount = 0;
       
@@ -349,7 +350,7 @@ async function checkAndAlert() {
         }
       }
       
-      console.log(`📊 Alert summary: ${successCount} successful, ${failureCount} failed out of ${db.data.users.length} users`);
+      console.log(`📊 Alert summary: ${successCount} successful, ${failureCount} failed out of ${totalUsers} users`);
       
       db.data.lastStatus = true;
       db.write();
