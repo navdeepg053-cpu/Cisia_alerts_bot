@@ -30,7 +30,7 @@ Visit the live application: [Your Render URL]
 - Node.js >= 18.0.0
 - npm >= 10.2.4
 - A Google Cloud Project with OAuth 2.0 credentials
-- A Telegram Bot Token
+- A Telegram Bot Token from BotFather
 
 ## 🔧 Setup Instructions
 
@@ -69,15 +69,18 @@ SESSION_SECRET=your-random-secret-key
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 ```
 
-### 5. Configure Telegram Bot
+**Important:** The `TELEGRAM_BOT_TOKEN` environment variable is required and must be set. The application will fail to start if this variable is not provided.
 
-The bot token is already configured in the code:
-```
-Token: 8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY
-Bot: @Cent_alertbot
-```
+### 5. Create a Telegram Bot (Required)
+
+1. Open Telegram and search for `@BotFather`
+2. Send `/newbot` and follow the instructions
+3. Choose a name and username for your bot
+4. Copy the bot token provided by BotFather
+5. Set the token in your environment variables as `TELEGRAM_BOT_TOKEN`
 
 ### 6. Run Locally
 
@@ -116,6 +119,9 @@ Add the following environment variables in Render dashboard:
 | `GOOGLE_CLIENT_ID` | Your Google Client ID | From Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | Your Google Client Secret | From Google Cloud Console |
 | `GOOGLE_CALLBACK_URL` | `https://your-app-name.onrender.com/auth/google/callback` | Replace with your Render URL |
+| `TELEGRAM_BOT_TOKEN` | Your Telegram Bot Token | **Required** - From BotFather |
+
+**Important:** The `TELEGRAM_BOT_TOKEN` is required and the application will not start without it.
 
 ### 4. Deploy
 

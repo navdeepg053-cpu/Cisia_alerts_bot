@@ -32,6 +32,9 @@ When deploying to Render.com, you must configure the following environment varia
 | `GOOGLE_CLIENT_ID` | Your Google Client ID | From Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | Your Google Client Secret | From Google Cloud Console |
 | `GOOGLE_CALLBACK_URL` | `https://YOUR-APP-NAME.onrender.com/auth/google/callback` | OAuth callback URL |
+| `TELEGRAM_BOT_TOKEN` | Your Telegram Bot Token | **Required** - From BotFather |
+
+**Important:** The `TELEGRAM_BOT_TOKEN` environment variable is **required**. The application will fail to start with a clear error message if this variable is not set.
 
 ## Deployment Steps
 
@@ -60,8 +63,10 @@ git push origin main
 
 In the Render service settings:
 1. Go to **Environment** tab
-2. Add all environment variables listed above
+2. Add all environment variables listed above (including the **required** `TELEGRAM_BOT_TOKEN`)
 3. Click **Save Changes**
+
+**Critical:** Make sure to set the `TELEGRAM_BOT_TOKEN` environment variable. Without it, the application will immediately exit with an error message.
 
 ### 4. Update Google OAuth Redirect URI
 
@@ -81,9 +86,17 @@ Click **Deploy** in Render dashboard. The deployment will:
 
 ## Telegram Bot Configuration
 
-The Telegram bot is pre-configured with:
-- **Token**: `8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY`
-- **Bot Username**: `@Cent_alertbot`
+**Important:** You must create your own Telegram bot and set the token as an environment variable.
+
+### Creating a Telegram Bot:
+
+1. Open Telegram and search for `@BotFather`
+2. Send `/newbot` command
+3. Follow the instructions to create your bot:
+   - Choose a name for your bot
+   - Choose a username for your bot (must end in 'bot')
+4. BotFather will provide you with a bot token (e.g., `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
+5. Copy this token and set it as the `TELEGRAM_BOT_TOKEN` environment variable in Render
 
 The bot automatically responds to `/start` command with the user's Chat ID.
 

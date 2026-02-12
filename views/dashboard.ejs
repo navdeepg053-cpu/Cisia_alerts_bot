@@ -45,6 +45,9 @@
                         <h2 class="card-title">
                             <span class="card-icon">🔔</span>
                             Telegram Alert Configuration
+                            <% if (chatId) { %>
+                                <span class="telegram-connected-badge">✅ Telegram connected</span>
+                            <% } %>
                         </h2>
                     </div>
                     

@@ -46,14 +46,18 @@ let bot;
 
 console.log("Bot init starting...");
 
-// Telegram bot token - using token provided in requirements
-// Can be overridden with TELEGRAM_BOT_TOKEN environment variable if needed
-const token = process.env.TELEGRAM_BOT_TOKEN || '8502714514:AAET39_RZ8u0KY8W1_I-g3y3MXRS7R3nXDY';
+// Telegram bot token - must be set via TELEGRAM_BOT_TOKEN environment variable
+if (!process.env.TELEGRAM_BOT_TOKEN) {
+  console.error('Error: TELEGRAM_BOT_TOKEN environment variable must be set');
+  process.exit(1);
+}
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
 console.log("Token loaded, creating bot...");
 
 try {
   bot = new TelegramBot(token, { polling: true });
-  console.log("Bot created - polling should be active");
+  console.log("✅ Telegram bot created successfully - polling started");
   
   // Handle /start command to send Chat ID
   bot.onText(/\/start/, (msg) => {
@@ -200,6 +204,15 @@ app.post('/update-chatid', isAuthenticated, async (req, res) => {
     registeredAt: new Date().toISOString()
   });
   db.write();
+  
+  // Send Telegram confirmation message
+  try {
+    await bot.sendMessage(chatId, "✅ Connected! You'll get alerts when spots open.");
+    console.log(`✅ Confirmation message sent to chatId ${chatId}`);
+  } catch (error) {
+    console.error(`⚠️ Failed to send confirmation to chatId ${chatId}:`, error.message);
+    // Don't fail the request if Telegram message fails - user can still be registered
+  }
   
   res.render('dashboard', { 
     user: req.user,
